@@ -5,15 +5,15 @@ import styled from 'styled-components';
 import { generateRandomString, addDatesSeparatorsToMessagesList } from '../services/commonService';
 import firebaseService from '../services/firebase/service';
 import {setCurrentChatId} from '../redux/currentChatId';
-import {setCurrentChatUser} from '../redux/currentChatUser';
+import {setCurrentChatUsers} from '../redux/currentChatUsers';
 import { useSelector, useDispatch } from 'react-redux';
 
-import { Message, DateBetweenMessages, EmptyState, Loader, CurrentChatInfo, ContactInfo, ChatInput, ReplyToMessage } from '.';
+import { Message, DateBetweenMessages, EmptyState, Loader, CurrentChatInfo, ContactInfo, ContactsInfo, ChatInput, ReplyToMessage } from '.';
 
 function Chat() {
     const authUser = useSelector(state => state.authUserDetails.value);
     const currentChatId = useSelector(state => state.currentChatId.value);
-    const currentChatUser = useSelector(state => state.currentChatUser.value);
+    const currentChatUsers = useSelector(state => state.currentChatUsers.value);
     const currentReplyMessage = useSelector(state => state.currentReplyMessage.value);
     const dispatch = useDispatch();
 
@@ -30,8 +30,9 @@ function Chat() {
     const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => { // this effect is trying to fetch chatId if null
-        if (currentChatUser && !currentChatId) {
-            fetchChatId([authUser.uid, currentChatUser.uid]);
+        if (currentChatUsers && currentChatUsers.length && !currentChatId) {
+            const currentChatUsersIds = currentChatUsers.map(user => user.uid);
+            fetchChatId([authUser.uid, ...currentChatUsersIds]);
         }
         async function fetchChatId(participnatsIds) {
             setIsLoading(true);
@@ -46,15 +47,16 @@ function Chat() {
 
             if (!chatId) {
                 chatId = generateRandomString(20);
-                await firebaseService.setupChat(chatId, [authUser.uid, currentChatUser.uid]);
+                const currentChatUsersIds = currentChatUsers.map(user => user.uid);
+                await firebaseService.setupChat(chatId, [authUser.uid, ...currentChatUsersIds]);
             }
             dispatch(setCurrentChatId(chatId));
             setIsLoading(false);
         }
-    }, [currentChatUser, currentChatId, authUser, dispatch]);
+    }, [currentChatUsers, currentChatId, authUser, dispatch]);
 
     useEffect(() => { // this effect is for populating the current chat messages
-        if (!currentChatUser || !currentChatId) {
+        if (!currentChatUsers || !currentChatUsers.length || !currentChatId) {
             setChatMessages([]);
             return;
         }
@@ -108,9 +110,9 @@ function Chat() {
         firebaseService.markMessagesReadInConversation(authUser.uid, currentChatId);
     }, [authUser, currentChatId, isThreadMode]);
 
-    useEffect(() => { // this effect removeing thread mode when changing currentChatId or currentChatUser
+    useEffect(() => { // this effect removeing thread mode when changing currentChatId or currentChatUsers
         setIsThreadMode(false);
-    }, [currentChatId, currentChatUser]);
+    }, [currentChatId, currentChatUsers]);
 
     useEffect(() => scrollToBottomOfChat, [chatMessages]); // to scroll down after each messages state update
 
@@ -134,10 +136,12 @@ function Chat() {
         if (isReplyMode) {
             newMessage.messageIdReplyingTo = currentReplyMessage.id;
         }
+
+        const currentChatUsersIds = currentChatUsers.map(user => user.uid);
         if (isThreadMode) {
-            firebaseService.sendThreadMessage(authUser.uid, newMessage, [authUser.uid, currentChatUser.uid]);
+            firebaseService.sendThreadMessage(authUser.uid, newMessage, [authUser.uid, ...currentChatUsersIds]);
         } else {
-            firebaseService.sendMessage(authUser.uid, newMessage, [authUser.uid, currentChatUser.uid]);
+            firebaseService.sendMessage(authUser.uid, newMessage, [authUser.uid, ...currentChatUsersIds]);
         }
         setIsReplyMode(false);
     }
@@ -165,7 +169,7 @@ function Chat() {
 
     const handleDeleteChat = async (e) => {
         await firebaseService.deleteChat(currentChatId);
-        dispatch(setCurrentChatUser(null));
+        dispatch(setCurrentChatUsers([]));
         dispatch(setCurrentChatId(null));
     }
 
@@ -177,7 +181,7 @@ function Chat() {
                     unsetThreadMode={() => setIsThreadMode(false)} deleteChat={handleDeleteChat}/>
 
                 {isLoading ? <Loader /> : <Main>
-                    {chatMessages.length < 1 || !currentChatUser ? <EmptyState currentChatUser={currentChatUser} /> : <ChatContainer>
+                    {chatMessages.length < 1 || !currentChatUsers || !currentChatUsers.length ? <EmptyState currentChatUsers={currentChatUsers} /> : <ChatContainer>
                         {chatMessages.map(message => {
                             if (message.isDateBetweenMessages) {
                                 return <DateBetweenMessages key={message.date} date={message.date} />;
@@ -186,7 +190,7 @@ function Chat() {
                                 <Message
                                     key={message.id}
                                     authUser={authUser}
-                                    currentChatUser={currentChatUser}
+                                    currentChatUsers={currentChatUsers}
                                     isThreadMessage={isThreadMode}
                                     setMessageIdForThread={setMessageIdForThread}
                                     setIsThreadMode={setIsThreadMode}
@@ -204,7 +208,7 @@ function Chat() {
                     </ChatContainer>}
                 </Main>}
 
-                {!currentChatUser ? null : <ChatInput
+                {!currentChatUsers || !currentChatUsers.length ? null : <ChatInput
                     isEditMode={isEditMode}
                     editMessageText={editMessageText}
                     setIsEditMode={setIsEditMode}
@@ -217,8 +221,13 @@ function Chat() {
                 {!isReplyMode ? null : <ReplyToMessage setIsReplyMode={setIsReplyMode} />}
             </MainContainer>
 
-            {!isContactInfoScreenVisible ? null : <ContactInfo 
-                setIsContactInfoScreenVisible={setIsContactInfoScreenVisible} />}
+            {isContactInfoScreenVisible && currentChatUsers.length === 1 ? <ContactInfo 
+                contacts={currentChatUsers}
+                setIsContactInfoScreenVisible={setIsContactInfoScreenVisible} /> : null}
+
+            {isContactInfoScreenVisible && currentChatUsers.length > 1 ? <ContactsInfo 
+                contacts={currentChatUsers}
+                setIsContactInfoScreenVisible={setIsContactInfoScreenVisible} /> : null}
 
         </Container>
     )

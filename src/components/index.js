@@ -4,6 +4,8 @@ import ChatInput from './ChatInput';
 import ChatsList from './ChatsList';
 import ChatsListItem from './ChatsListItem';
 import ContactInfo from './ContactInfo';
+import ContactsInfo from './ContactsInfo';
+import CreateGroup from './CreateGroup';
 import CurrentChatInfo from './CurrentChatInfo';
 import DateBetweenMessages from './DateBetweenMessages';
 import EditProfile from './EditProfile';
@@ -22,6 +24,8 @@ export {
     ChatsList,
     ChatsListItem,
     ContactInfo,
+    ContactsInfo,
+    CreateGroup,
     CurrentChatInfo,
     DateBetweenMessages,
     EditProfile,

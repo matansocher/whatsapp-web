@@ -30,7 +30,9 @@ function ChatsList() {
                     lastMessageTime: conversation.lastMessageTime,
                     participantsIds: uniq(conversation.participants.filter(participantUid => participantUid !== authUser.uid)),
                     pinnedFor: conversation.pinnedFor,
-                    typing: conversation.typing
+                    typing: conversation.typing,
+                    isGroup: conversation.isGroup,
+                    groupSubject: conversation.groupSubject
                 }
             });
 
@@ -43,7 +45,7 @@ function ChatsList() {
             const userRecords = users.docs.map(doc => doc.data());
 
             conversationsArr = conversationsArr.map(conversation => {
-                const { chatId, lastMessageTime, participantsIds, pinnedFor, typing } = conversation;
+                const { chatId, lastMessageTime, participantsIds, pinnedFor, typing, isGroup, groupSubject } = conversation;
                 const users = participantsIds.map(participantsId => {
                     return userRecords.find(userRecord => userRecord.uid === participantsId);
                 });
@@ -52,9 +54,11 @@ function ChatsList() {
                 return {
                     chatId,
                     lastMessageTime,
-                    user: users[0],
+                    users,
                     isPinned,
-                    typingUsers
+                    typingUsers,
+                    isGroup,
+                    groupSubject
                 }
             });
 
@@ -83,7 +87,7 @@ function ChatsList() {
         usersSearchResults = usersSearchResults
             .filter(usersSearchResult => usersSearchResult.uid !== authUser.uid)
             .map(usersSearchResult => {
-                return { chatId: null, user: usersSearchResult }
+                return { chatId: null, users: [usersSearchResult] }
             });
         setSearchResultsArr(usersSearchResults);
         setIsLoading(false);

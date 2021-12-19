@@ -1,13 +1,23 @@
 import React from 'react';
 import styled from 'styled-components';
 
-function Header({ currentChatUser }) {
-    const text = currentChatUser && (currentChatUser.displayName || currentChatUser.email) ? 
-    `This is the very beginning of your direct message history with ${currentChatUser.displayName || currentChatUser.email}` : 
-    `Whatsapp Web`;
+function Header({ currentChatUsers }) {
+    const getText = () => {
+        if (!currentChatUsers || !currentChatUsers.length) {
+            return `Whatsapp Web`;
+        }
+        const currentChatUsersNames = currentChatUsers.map(currentChatUser => {
+            return currentChatUser.chosenDisplayName || currentChatUser.displayName || currentChatUser.email
+        }).join(' and ');
+        return `This is the very beginning of your direct message history with ${currentChatUsersNames}`;
+    }
+
+    // const text = currentChatUsers && (currentChatUser.displayName || currentChatUser.email) ? 
+    // `This is the very beginning of your direct message history with ${currentChatUser.displayName || currentChatUser.email}` : 
+    // `Whatsapp Web`;
     return (
         <Container>
-            <p>{text}</p>
+            <p>{getText()}</p>
         </Container>
     )
 }

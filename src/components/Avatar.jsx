@@ -1,6 +1,7 @@
 import React from 'react';
 import MUIAvatar from '@material-ui/core/Avatar';
 import styled from 'styled-components';
+import {Group as GroupIcon} from '@mui/icons-material';
 
 function Avatar({ photo = '', name = '', onclick, size }) {
     const letters = name.charAt(0).toUpperCase() || 'AA';
@@ -19,20 +20,20 @@ function Avatar({ photo = '', name = '', onclick, size }) {
     const getSizeAttributes = (size) => {
         switch (size) {
             case 'small':
-                return { width: '40px', height: '40px', fontSize: '20px' };
+                return { width: '26px', height: '26px', fontSize: '14px' };
             case 'medium':
-                return { width: '70px', height: '70px', fontSize: '35px' };
+                return { width: '40px', height: '40px', fontSize: '20px' };
             case 'big':
                 return { width: '100px', height: '100px', fontSize: '50px' };
             default:
-                return getSizeAttributes('small');
+                return getSizeAttributes('medium');
         }
     }
 
     return (
         <Container onClick={onclick}>
             {/* {photo ? <Image src={photo} alt={`user`} /> : <MUIAvatar>{ letters }</MUIAvatar>} */}
-            <MUIAvatar style={getStyleObj()}>{ letters }</MUIAvatar>
+            <MUIAvatar style={getStyleObj()}>{ letters === 'G' ? <GroupIcon /> : letters }</MUIAvatar>
         </Container>
     )
 }

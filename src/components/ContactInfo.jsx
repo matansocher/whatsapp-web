@@ -1,31 +1,29 @@
+// $$$$$$ currentChatUser => currentChatUsers
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import firebaseService from '../services/firebase/service';
 import { getLastSeenString } from '../services/commonService';
-import { useSelector, useDispatch } from 'react-redux';
-import { setCurrentChatUser } from '../redux/currentChatUser';
 
 import { Avatar, Loader } from '.';
 
 import {Info as InfoIcon, Email as EmailIcon, AccessTime as AccessTimeIcon, Person as PersonIcon, Close as CloseIcon} from '@mui/icons-material';
 
-function ContactInfo({setIsContactInfoScreenVisible}) {    
-    const currentChatUser = useSelector(state => state.currentChatUser.value);
-    const dispatch = useDispatch();
+function ContactInfo({setIsContactInfoScreenVisible, contacts}) {    
 
-    const [isLoading, setIsLoading] = useState(false);
+    const currentChatUser = contacts[0];
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         const getCurrentChatUserDetails = async () => {
             const res = await firebaseService.getUserDetails(currentChatUser.uid).get();
             const CurrentChatUserDetails = res.docs.map(doc => doc.data())[0];
             if (CurrentChatUserDetails) {
-                dispatch(setCurrentChatUser(CurrentChatUserDetails));
+                // dis patch
             }
             setIsLoading(false);
         }
         getCurrentChatUserDetails();
-    }, [currentChatUser, dispatch]);
+    }, [currentChatUser]);
 
     return (
         <Container>
@@ -38,7 +36,7 @@ function ContactInfo({setIsContactInfoScreenVisible}) {
             </Top>
 
             <Main>
-                {!currentChatUser ? null : <AvatarWrapper><Avatar size={'big'} photo={currentChatUser.photoURL} name={currentChatUser.chosenDisplayName || currentChatUser.displayName || currentChatUser.email} /></AvatarWrapper>}
+                {!currentChatUser ? null : <AvatarWrapper><Avatar size={'big'} name={contacts.length === 1 ? contacts[0].chosenDisplayName || contacts[0].displayName || contacts[0].email : 'G'} /></AvatarWrapper>}
 
                 {!currentChatUser.chosenDisplayName && !currentChatUser.displayName ? null : <Section>
                     <PersonIcon />
@@ -79,7 +77,7 @@ const Container = styled.div`
 const Top = styled.div`
     display: flex;
     align-items: center;
-    height: 75px;
+    height: 60px;
     padding: 0 20px;
 `;
 

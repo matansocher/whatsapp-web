@@ -10,6 +10,10 @@ function getUserDetails(userId) {
     return database.collection('users').where('uid', '==', userId);
 }
 
+function getAllUserDetails() {
+    return database.collection('users').get();
+}
+
 function updateLastSeen(userId) {
     return database.collection('users').doc(userId).set({ lastSeen: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
 }
@@ -30,12 +34,17 @@ function getChatsUsers(usersUids) {
     return database.collection('users').where('uid', 'in', usersUids).get();
 }
 
-function setupChat(chatId, participants) {
+function setupChat(chatId, participants, subject) {
     const batch = database.batch();
     participants.forEach(participant => {
         batch.set(database.collection('chats').doc(chatId).collection('unreadMessagesCount').doc(participant), { count: 0 });
     });
-    batch.set(database.collection('chats').doc(chatId), { lastMessageTime: null, participants, pinnedFor: [], typing: [] });
+    const chatObj = { lastMessageTime: null, participants, pinnedFor: [], typing: [] };
+    if (subject) {
+        chatObj.groupSubject = subject;
+        chatObj.isGroup = true;
+    }
+    batch.set(database.collection('chats').doc(chatId), chatObj);
     return batch.commit();
 }
 
@@ -52,7 +61,7 @@ async function makeSureThreadIsSetup(chatId, messageIdForThread, participants) {
 }
 
 async function deleteChat(chatId) {
-    return database.collection('chats').doc(chatId).delete();
+    return await database.collection('chats').doc(chatId).delete();
 }
 
 function getMessages(chatId) {
@@ -216,6 +225,7 @@ function stopTyping(userId, chatId) {
 const objToExport = {
     upsertUserData,
     getUserDetails,
+    getAllUserDetails,
     updateLastSeen,
     searchUsers,
     fetchChatId,

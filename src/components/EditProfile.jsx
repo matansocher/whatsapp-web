@@ -111,7 +111,7 @@ const Container = styled.div`
 const Top = styled.div`
     display: flex;
     align-items: center;
-    height: 75px;
+    height: 60px;
     padding: 0 20px;
 `;
 

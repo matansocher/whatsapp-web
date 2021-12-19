@@ -5,7 +5,7 @@ import styled from 'styled-components';
 import firebaseService from '../services/firebase/service';
 import { getTimeFromSeconds } from '../services/commonService';
 import {setCurrentChatId} from '../redux/currentChatId';
-import {setCurrentChatUser} from '../redux/currentChatUser';
+import {setCurrentChatUsers} from '../redux/currentChatUsers';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { Avatar } from '.';
@@ -14,8 +14,9 @@ import {FiberManualRecord as FiberManualRecordIcon, Delete as DeleteIcon, PushPi
 
 function ChatsListItem({conversation}) {
 
-    const{chatId, lastMessageTime, user, isPinned, typingUsers} = conversation;
+    const{chatId, lastMessageTime, users, isPinned, typingUsers, isGroup, groupSubject } = conversation;
     const authUser = useSelector(state => state.authUserDetails.value);
+    const currentChatUsers = useSelector(state => state.currentChatUsers.value);
 
     const [isHovered, setIsHovered] = useState(false);
     const [anchorEl, setAnchorEl] = useState(null);
@@ -23,7 +24,7 @@ function ChatsListItem({conversation}) {
 
     const [amountOfUnreadMessages, setAmountOfUnreadMessages] = useState(false);
 
-    const currentChatUser = useSelector(state => state.currentChatUser.value);
+    const currentChatId = useSelector(state => state.currentChatId.value);
     const dispatch = useDispatch();
 
     useEffect(() => {
@@ -46,7 +47,7 @@ function ChatsListItem({conversation}) {
 
     const getContainerClass = () => {
         const classes = [];
-        const isSelected = user && user.email && currentChatUser && user.email === currentChatUser.email;
+        const isSelected = currentChatId === chatId;
         if (isHovered) classes.push('hovered-chat-list');
         if (isSelected) classes.push('selected-chat-list');
         if (classes.length > 1) return 'selected-chat-list'
@@ -54,10 +55,8 @@ function ChatsListItem({conversation}) {
     }
 
     const handleClick = (e) => {
-        dispatch(setCurrentChatUser(user));
-        // setCurrentChatUser(user);
+        dispatch(setCurrentChatUsers(users));
         dispatch(setCurrentChatId(chatId));
-        // setCurrentChatId(chatId);
     }
 
     const handlePinChat = async (e) => {
@@ -76,10 +75,12 @@ function ChatsListItem({conversation}) {
     }
 
     const handleDeleteChat = async (e) => {
-        await firebaseService.deleteChat(chatId);
-        dispatch(setCurrentChatUser(user));
-        dispatch(setCurrentChatId(chatId));
         setAnchorEl(null);
+        await firebaseService.deleteChat(chatId);
+        if (currentChatId === chatId) {
+            dispatch(setCurrentChatUsers([]));
+            dispatch(setCurrentChatId(null));
+        }
     }
 
     const renderTypingOrLastMessageTime = () => {
@@ -90,6 +91,20 @@ function ChatsListItem({conversation}) {
         if (lastMessageTime) {
             return <p>{getTimeFromSeconds(lastMessageTime.seconds)}</p>;
         }
+    }
+
+    const getNames = () => {
+        if (!users || !users.length) {
+            return;
+        }
+        if (isGroup) {
+            return groupSubject;
+        }
+        const currentChatUsersNames = users
+            .map(currentChatUser => currentChatUser.chosenDisplayName || currentChatUser.displayName)
+            .sort()
+            .join(', ');
+        return currentChatUsersNames;
     }
 
     return (
@@ -133,13 +148,13 @@ function ChatsListItem({conversation}) {
             </Menu>
 
             <Image>
-                <Avatar photo={user.photoURL} name={user.displayName || user.email} />
-                {user && user.lastSeen === 'Online' ? <FiberManualRecordIcon /> : null}
+                <Avatar name={users && users.length === 1 ? users[0].chosenDisplayName || users[0].displayName || users[0].email : 'G'} />
+                {users && users.length === 1 && users[0].lastSeen === 'Online' ? <FiberManualRecordIcon /> : null}
             </Image>
 
             <Content>
                 <ContentLeft>
-                    <h2>{user.displayName || user.email}</h2>
+                    <h2>{getNames()}</h2>
                 </ContentLeft>
                 <ContentRight>
                     {renderTypingOrLastMessageTime()}

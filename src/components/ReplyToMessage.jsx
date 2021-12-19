@@ -5,13 +5,13 @@ import {Close as CloseIcon} from '@mui/icons-material';
 
 function ReplyToMessage({setIsReplyMode}) {
     const authUser = useSelector(state => state.authUserDetails.value);
-    const currentChatUser = useSelector(state => state.currentChatUser.value);
+    const currentChatUsers = useSelector(state => state.currentChatUsers.value);
     const currentReplyMessage = useSelector(state => state.currentReplyMessage.value);
     const [currentReplyMessageSenderName, setCurrentReplyMessageSenderName] = useState(null);
     
     useEffect(() => {
         const getUserNameOfSender = () => {
-            const users = [authUser, currentChatUser];
+            const users = [authUser, ...currentChatUsers];
             const sender = users.filter(user => user.uid === currentReplyMessage.senderId);
             if (!sender || !sender.length) {
                 return;

@@ -7,7 +7,7 @@ import {setAuthUserDetails} from '../redux/authUserDetails';
 import {setStarredMessagesIds} from '../redux/starredMessagesIds';
 import firebaseService from '../services/firebase/service';
 
-import { HeaderInfo, ChatsList, Chat, EditProfile, Loader } from '.';
+import { HeaderInfo, ChatsList, Chat, EditProfile, CreateGroup, Loader } from '.';
 
 function Main({authUser: firebaseAuthUser}) {
 
@@ -19,6 +19,7 @@ function Main({authUser: firebaseAuthUser}) {
 
     const [isLoading, setIsLoading] = useState(true);
     const [isEditProfileScreen, setIsEditProfileScreen] = useState(false);
+    const [isCreateGroupScreen, setIsCreateGroupScreen] = useState(false);
 
     useEffect(() => { // update user data when logging in
         const upsertUserData = () => { // updating or adding user details to users collection
@@ -78,9 +79,10 @@ function Main({authUser: firebaseAuthUser}) {
         <ThemeProvider theme={theme}>
             {isLoading ? <Loader /> : <MainContainer>
                 <Left>
-                    {isEditProfileScreen ? <EditProfile setIsEditProfileScreen={setIsEditProfileScreen} /> : 
+                    {isEditProfileScreen && !isCreateGroupScreen ? <EditProfile setIsEditProfileScreen={setIsEditProfileScreen} /> : 
+                        !isEditProfileScreen && isCreateGroupScreen ? <CreateGroup setIsCreateGroupScreen={setIsCreateGroupScreen} /> : 
                         <>
-                            <HeaderInfo setIsEditProfileScreen={setIsEditProfileScreen} />
+                            <HeaderInfo setIsEditProfileScreen={setIsEditProfileScreen} setIsCreateGroupScreen={setIsCreateGroupScreen} />
                             <ChatsList />
                         </>
                     }

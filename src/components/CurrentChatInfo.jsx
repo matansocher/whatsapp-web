@@ -1,6 +1,8 @@
 import React, {useState} from 'react';
 import styled from 'styled-components';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import {setCurrentChatId} from '../redux/currentChatId';
+import {setCurrentChatUsers} from '../redux/currentChatUsers';
 
 import { getLastSeenString } from '../services/commonService';
 
@@ -11,8 +13,10 @@ import {MoreVert as MoreVertIcon, Person as PersonIcon, CheckBox as CheckBoxIcon
 
 function CurrentChatInfo({isThreadMode, setIsContactInfoScreenVisible, unsetThreadMode, deleteChat}) {
 
+    const authUser = useSelector(state => state.authUserDetails.value);
     const currentChatId = useSelector(state => state.currentChatId.value);
-    const currentChatUser = useSelector(state => state.currentChatUser.value);
+    const currentChatUsers = useSelector(state => state.currentChatUsers.value);
+    const dispatch = useDispatch();
 
     const [anchorEl, setAnchorEl] = useState(null);
     const isMenuOpen = Boolean(anchorEl);
@@ -27,23 +31,47 @@ function CurrentChatInfo({isThreadMode, setIsContactInfoScreenVisible, unsetThre
     }
 
     const handleDeleteChat = async () => {
-        deleteChat(currentChatId);
+        await deleteChat(currentChatId);
+        dispatch(setCurrentChatId(null));
+        dispatch(setCurrentChatUsers([]));
         setAnchorEl(null);
+    }
+
+    const getNames = () => {
+        const users = [authUser, ...currentChatUsers];
+        const currentChatUsersNames = currentChatUsers.map(currentChatUser => {
+            return currentChatUser.chosenDisplayName || currentChatUser.displayName || currentChatUser.email;
+        }).join(' and ');
+        return currentChatUsersNames;
+    }
+
+    const getLastSeenText = () => {
+        if (!currentChatUsers || !currentChatUsers.length) {
+            return '';
+        } else if (currentChatUsers.length === 1) {
+            return getLastSeenString(currentChatUsers[0].lastSeen);
+        } else {
+            const users = [authUser, ...currentChatUsers];
+            const currentChatUsersNames = users.map(currentChatUser => {
+                return currentChatUser.chosenDisplayName || currentChatUser.displayName || currentChatUser.email;
+            }).join(', ');
+            return currentChatUsersNames;
+        }
     }
 
     return (
         <Container>
             <Left>
-                {currentChatUser && isThreadMode ? <ArrowBackIcon onClick={unsetThreadMode} style={{marginRight: '10px', cursor: 'pointer'}} /> : null}
-                {!currentChatUser ? null : <>
-                <Avatar photo={currentChatUser.photoURL} name={currentChatUser.displayName || currentChatUser.email} />
+                {currentChatUsers && currentChatUsers.length && isThreadMode ? <ArrowBackIcon onClick={unsetThreadMode} style={{marginRight: '10px', cursor: 'pointer'}} /> : null}
+                {!currentChatUsers || !currentChatUsers.length ? null : <>
+                {!currentChatUsers || !currentChatUsers.length ? null : <Avatar name={currentChatUsers.length === 1 ? currentChatUsers[0].chosenDisplayName || currentChatUsers[0].displayName || currentChatUsers[0].email : 'G'} />}
                 <Content onClick={handleContactInfo}>
-                    <Name>{currentChatUser.displayName || currentChatUser.email}</Name>
-                    <LastSeen>{getLastSeenString(currentChatUser.lastSeen)}</LastSeen>
+                    <Name>{getNames()}</Name>
+                    <LastSeen>{getLastSeenText()}</LastSeen>
                 </Content></>}
             </Left>
 
-            {!currentChatUser ? null : <Right>
+            {!currentChatUsers || !currentChatUsers.length ? null : <Right>
                 <SearchIcon onClick={searchMessages} />
                 <MoreVertIcon onClick={(e) => setAnchorEl(e.currentTarget)} />
 

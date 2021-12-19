@@ -10,7 +10,7 @@ import { Avatar } from '.';
 import {Menu, MenuItem, ListItemText, ListItemIcon} from '@mui/material';
 import {Logout as LogoutIcon, MoreVert as MoreVertIcon, Person as PersonIcon, Group as GroupIcon, Star as StarIcon, Settings as SettingsIcon} from '@mui/icons-material';
 
-function HeaderInfo({ setIsEditProfileScreen }) {
+function HeaderInfo({ setIsEditProfileScreen, setIsCreateGroupScreen }) {
     const authUser = useSelector(state => state.authUserDetails.value);
 
     const [anchorEl, setAnchorEl] = useState(null);
@@ -29,6 +29,11 @@ function HeaderInfo({ setIsEditProfileScreen }) {
 
     const handleEditProfileClick = async (e) => {
         setIsEditProfileScreen(true);
+        setAnchorEl(null);
+    }
+
+    const handleNewGroupClick = async (e) => {
+        setIsCreateGroupScreen(true);
         setAnchorEl(null);
     }
 
@@ -58,7 +63,7 @@ function HeaderInfo({ setIsEditProfileScreen }) {
                             </ListItemIcon>
                             <ListItemText>Edit Profile</ListItemText>
                         </MenuItem>
-                        <MenuItem>
+                        <MenuItem onClick={handleNewGroupClick}>
                             <ListItemIcon>
                                 <GroupIcon fontSize='small' />
                             </ListItemIcon>

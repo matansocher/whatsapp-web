@@ -9,7 +9,7 @@ import {Loader} from '.';
 import {Reply as ReplyIcon, KeyboardArrowDown as KeyboardArrowDownIcon, Delete as DeleteIcon, Star as StarIcon, Done as DoneIcon, Edit as EditIcon, ChevronRight as ChevronRightIcon} from '@mui/icons-material';
 import {Menu, MenuItem, ListItemText, ListItemIcon} from '@mui/material';
 
-function Message({ authUser, currentChatUser, message, isThreadMessage = false, deleteMessage, setMessageIdForThread, setIsThreadMode, setIsEditMode, setMessageIdToEdit, setEditMessageText, setIsLoading, setIsReplyMode, scrollToBottomOfChat }) {
+function Message({ authUser, currentChatUsers, message, isThreadMessage = false, deleteMessage, setMessageIdForThread, setIsThreadMode, setIsEditMode, setMessageIdToEdit, setEditMessageText, setIsLoading, setIsReplyMode, scrollToBottomOfChat }) {
     const { id: messageId, chatId, senderId, time, text, messageIdForThread, isMainThreadMessage = false, edited = false, messageIdReplyingTo } = message;
     const niceTime = getMessageTimeFromSeconds(time ? time.seconds : null);
     const isSentByAuthUser = senderId === authUser.uid;
@@ -75,7 +75,7 @@ function Message({ authUser, currentChatUser, message, isThreadMessage = false, 
             return;
         }
 
-        const users = [authUser, currentChatUser];
+        const users = [authUser, ...currentChatUsers];
         const sender = users.filter(user => user.uid === replyMessage.senderId);
         if (!sender || !sender.length) {
             setIsMessageLoading(false);
@@ -127,7 +127,8 @@ function Message({ authUser, currentChatUser, message, isThreadMessage = false, 
 
     const goIntoThread = async () => {
         setIsLoading(true);
-        await firebaseService.makeSureThreadIsSetup(chatId, messageId, [authUser.uid, currentChatUser.uid]);
+        const currentChatUsersIds = currentChatUsers.map(user => user.uid);
+        await firebaseService.makeSureThreadIsSetup(chatId, messageId, [authUser.uid, ...currentChatUsersIds]);
         firebaseService.markMessagesReadInThread(authUser.uid, chatId, messageId);
         setIsLoading(false)
         setMessageIdForThread(messageId);
@@ -141,6 +142,13 @@ function Message({ authUser, currentChatUser, message, isThreadMessage = false, 
         if (!isSentByAuthUser) classes.push('message-received');
         if (isMainThreadMessage) classes.push('main-thread-message');
         return classes.join(' ');
+    }
+
+    const getNames = () => {
+        const userMssageSentFrom = [authUser, ...currentChatUsers].find(user => user.uid === senderId);
+        if (userMssageSentFrom) {
+            return userMssageSentFrom.chosenDisplayName || userMssageSentFrom.displayName || userMssageSentFrom.email;
+        }
     }
 
     return (
@@ -189,7 +197,7 @@ function Message({ authUser, currentChatUser, message, isThreadMessage = false, 
                 </ReplyContainer>}
 
             <MessageContent>
-                <Name>{isSentByAuthUser ? authUser.chosenDisplayName || authUser.displayName || authUser.email : currentChatUser.chosenDisplayName || currentChatUser.displayName || currentChatUser.email}</Name>
+                <Name>{getNames()}</Name>
                 <Text>
                     {text}
                     {edited ? <HasEdited> edited</HasEdited> : null}
