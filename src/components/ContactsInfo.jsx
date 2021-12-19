@@ -1,4 +1,3 @@
-// $$$$$$ currentChatUser => currentChatUsers
 import React, { useState, useEffect } from 'react';
 import { flatten } from 'lodash';
 import { useSelector } from 'react-redux';

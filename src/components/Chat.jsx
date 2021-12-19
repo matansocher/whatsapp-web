@@ -4,7 +4,7 @@ import { intersection } from 'lodash';
 import styled from 'styled-components';
 import { generateRandomString, addDatesSeparatorsToMessagesList } from '../services/commonService';
 import firebaseService from '../services/firebase/service';
-import {setCurrentChatId} from '../redux/currentChatId';
+import {setCurrentChat} from '../redux/currentChat';
 import {setCurrentChatUsers} from '../redux/currentChatUsers';
 import { useSelector, useDispatch } from 'react-redux';
 
@@ -12,7 +12,7 @@ import { Message, DateBetweenMessages, EmptyState, Loader, CurrentChatInfo, Cont
 
 function Chat() {
     const authUser = useSelector(state => state.authUserDetails.value);
-    const currentChatId = useSelector(state => state.currentChatId.value);
+    const currentChat = useSelector(state => state.currentChat.value);
     const currentChatUsers = useSelector(state => state.currentChatUsers.value);
     const currentReplyMessage = useSelector(state => state.currentReplyMessage.value);
     const dispatch = useDispatch();
@@ -30,14 +30,14 @@ function Chat() {
     const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => { // this effect is trying to fetch chatId if null
-        if (currentChatUsers && currentChatUsers.length && !currentChatId) {
+        if (currentChatUsers && currentChatUsers.length && !currentChat) {
             const currentChatUsersIds = currentChatUsers.map(user => user.uid);
-            fetchChatId([authUser.uid, ...currentChatUsersIds]);
+            fetchChat([authUser.uid, ...currentChatUsersIds]);
         }
-        async function fetchChatId(participnatsIds) {
+        async function fetchChat(participnatsIds) { // $$$$$$$
             setIsLoading(true);
             const promisesArr = [];
-            participnatsIds.forEach(participnatsId => promisesArr.push(firebaseService.fetchChatId(participnatsId)));
+            participnatsIds.forEach(participnatsId => promisesArr.push(firebaseService.fetchChat(participnatsId)));
             const participnatsChatsRes = await Promise.all(promisesArr);
 
             const arrOfChatsArrs = [];
@@ -50,20 +50,20 @@ function Chat() {
                 const currentChatUsersIds = currentChatUsers.map(user => user.uid);
                 await firebaseService.setupChat(chatId, [authUser.uid, ...currentChatUsersIds]);
             }
-            dispatch(setCurrentChatId(chatId));
+            dispatch(setCurrentChat(chatId));
             setIsLoading(false);
         }
-    }, [currentChatUsers, currentChatId, authUser, dispatch]);
+    }, [currentChatUsers, currentChat, authUser, dispatch]);
 
     useEffect(() => { // this effect is for populating the current chat messages
-        if (!currentChatUsers || !currentChatUsers.length || !currentChatId) {
+        if (!currentChatUsers || !currentChatUsers.length || !currentChat) {
             setChatMessages([]);
             return;
         }
 
         setIsLoading(true);
         if (isThreadMode) {
-            firebaseService.getThreadMessages(currentChatId, messageIdForThread).onSnapshot(snapshot => {
+            firebaseService.getThreadMessages(currentChat.id, messageIdForThread).onSnapshot(snapshot => {
                 if (snapshot.empty) {
                     setChatMessages([]);
                 }
@@ -85,7 +85,7 @@ function Chat() {
                 setIsLoading(false);
             });
         } else {
-            firebaseService.getMessages(currentChatId).onSnapshot(snapshot => {
+            firebaseService.getMessages(currentChat.id).onSnapshot(snapshot => {
                 if (snapshot.empty) {
                     setChatMessages([]);
                 }
@@ -101,18 +101,18 @@ function Chat() {
                 setIsLoading(false);
             });
         }
-    }, [authUser, currentChatId, isThreadMode, messageIdForThread]);
+    }, [authUser, currentChat, isThreadMode, messageIdForThread]);
 
     useEffect(() => { // this effect marks messages read
-        if (!authUser || !currentChatId || isThreadMode) {
+        if (!authUser || !currentChat || !currentChat.id || isThreadMode) {
             return;
         }
-        firebaseService.markMessagesReadInConversation(authUser.uid, currentChatId);
-    }, [authUser, currentChatId, isThreadMode]);
+        firebaseService.markMessagesReadInConversation(authUser.uid, currentChat.id);
+    }, [authUser, currentChat, isThreadMode]);
 
-    useEffect(() => { // this effect removeing thread mode when changing currentChatId or currentChatUsers
+    useEffect(() => { // this effect removeing thread mode when changing currentChat.id or currentChatUsers
         setIsThreadMode(false);
-    }, [currentChatId, currentChatUsers]);
+    }, [currentChat, currentChatUsers]);
 
     useEffect(() => scrollToBottomOfChat, [chatMessages]); // to scroll down after each messages state update
 
@@ -122,10 +122,10 @@ function Chat() {
 
     const sendMessage = (e, text) => {
         if (isEditMode) {
-            return editMessage(e, isThreadMode, {chatId: currentChatId, messageIdForThread, messageId: messageIdToEdit, newText: text});
+            return editMessage(e, isThreadMode, {chatId: currentChat.id, messageIdForThread, messageId: messageIdToEdit, newText: text});
         }
         const newMessage = {
-            chatId: currentChatId,
+            chatId: currentChat.id,
             senderId: authUser.uid,
             time: firebase.firestore.FieldValue.serverTimestamp(),
             text
@@ -168,9 +168,9 @@ function Chat() {
     }
 
     const handleDeleteChat = async (e) => {
-        await firebaseService.deleteChat(currentChatId);
+        await firebaseService.deleteChat(currentChat.id);
         dispatch(setCurrentChatUsers([]));
-        dispatch(setCurrentChatId(null));
+        dispatch(setCurrentChat(null));
     }
 
     return (

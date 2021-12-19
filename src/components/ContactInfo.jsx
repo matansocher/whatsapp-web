@@ -1,4 +1,3 @@
-// $$$$$$ currentChatUser => currentChatUsers
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import firebaseService from '../services/firebase/service';

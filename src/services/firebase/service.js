@@ -22,7 +22,7 @@ function searchUsers(searchInput) {
     return database.collection('users').where('email', '>=', searchInput).where('email', '<=', searchInput + `z`).get();
 }
 
-function fetchChatId(userId) {
+function fetchChat(userId) {
     return database.collection('chats').where('participants', 'array-contains', userId).get();
 }
 
@@ -228,7 +228,7 @@ const objToExport = {
     getAllUserDetails,
     updateLastSeen,
     searchUsers,
-    fetchChatId,
+    fetchChat,
     getConversations,
     getChatsUsers,
     setupChat,

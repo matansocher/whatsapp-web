@@ -9,7 +9,7 @@ import {Mood as MoodIcon, Attachment as AttachmentIcon, Send as SendIcon, Photo 
 
 function ChatInput({isEditMode, setIsEditMode, editMessageText, isThreadMode, setMessageIdToEdit, messageIdForThread, sendMessage, editMessage}) {
     const authUser = useSelector(state => state.authUserDetails.value);
-    const currentChatId = useSelector(state => state.currentChatId.value);
+    const currentChat = useSelector(state => state.currentChat.value);
 
     const messageInput = useRef(null);
     const [typingIntervalId, setTypingIntervalId] = useState(null);
@@ -28,6 +28,10 @@ function ChatInput({isEditMode, setIsEditMode, editMessageText, isThreadMode, se
             messageInput.current.focus();
         }, 200);
     }, [editMessageText]);
+
+    useEffect(() => {
+        messageInput.current.value = '';
+    }, [currentChat]); // to scroll down after each messages state update
 
     const handleSendMessage = (e) => {
         const text = messageInput.current.value.trim();
@@ -52,7 +56,7 @@ function ChatInput({isEditMode, setIsEditMode, editMessageText, isThreadMode, se
             clearTimeout(typingIntervalId);
             setTypingIntervalId(null);
         } else {
-            await firebaseService.setTyping(authUser.uid, currentChatId);
+            await firebaseService.setTyping(authUser.uid, currentChat.id);
         }
         const intervalId = setTimeout(() => {
             stopTyping();
@@ -62,7 +66,7 @@ function ChatInput({isEditMode, setIsEditMode, editMessageText, isThreadMode, se
     }
 
     const stopTyping = async () => {
-        firebaseService.stopTyping(authUser.uid, currentChatId);
+        firebaseService.stopTyping(authUser.uid, currentChat.id);
     }
 
     const handlePhotosAndVideos = () => {

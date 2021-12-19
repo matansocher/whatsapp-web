@@ -12,7 +12,7 @@ import { HeaderInfo, ChatsList, Chat, EditProfile, CreateGroup, Loader } from '.
 function Main({authUser: firebaseAuthUser}) {
 
     const authUser = useSelector(state => state.authUserDetails.value);
-    const currentChatId = useSelector(state => state.currentChatId.value);
+    const currentChat = useSelector(state => state.currentChat.value);
     const dispatch = useDispatch();
 
     const theme = createTheme({ palette: { mode: 'dark' } }); // useMemo(() => createTheme({ palette: { mode: 'dark' } }), ['dark'])
@@ -66,14 +66,14 @@ function Main({authUser: firebaseAuthUser}) {
         }
         const cleanup = () => {
             firebaseService.updateLastSeen(authUser.uid);
-            if (currentChatId) {
-                firebaseService.stopTyping(authUser.uid, currentChatId);
+            if (currentChat) {
+                firebaseService.stopTyping(authUser.uid, currentChat.id);
             }
         }
 
         window.addEventListener('beforeunload', e => cleanup()); // on browser close
         return () => cleanup; // when main component is unmounted
-    }, [authUser, currentChatId]);
+    }, [authUser, currentChat]);
 
     return (
         <ThemeProvider theme={theme}>

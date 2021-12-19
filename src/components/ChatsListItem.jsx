@@ -4,7 +4,7 @@ import styled from 'styled-components';
 
 import firebaseService from '../services/firebase/service';
 import { getTimeFromSeconds } from '../services/commonService';
-import {setCurrentChatId} from '../redux/currentChatId';
+import {setCurrentChat} from '../redux/currentChat';
 import {setCurrentChatUsers} from '../redux/currentChatUsers';
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -14,18 +14,17 @@ import {FiberManualRecord as FiberManualRecordIcon, Delete as DeleteIcon, PushPi
 
 function ChatsListItem({conversation}) {
 
-    const{chatId, lastMessageTime, users, isPinned, typingUsers, isGroup, groupSubject } = conversation;
+    const{id: chatId, lastMessageTime, users, isPinned, typingUsers, isGroup, groupSubject } = conversation;
     const authUser = useSelector(state => state.authUserDetails.value);
     const currentChatUsers = useSelector(state => state.currentChatUsers.value);
+    const currentChat = useSelector(state => state.currentChat.value);
+    const dispatch = useDispatch();
 
     const [isHovered, setIsHovered] = useState(false);
     const [anchorEl, setAnchorEl] = useState(null);
     const isMenuOpen = Boolean(anchorEl);
 
     const [amountOfUnreadMessages, setAmountOfUnreadMessages] = useState(false);
-
-    const currentChatId = useSelector(state => state.currentChatId.value);
-    const dispatch = useDispatch();
 
     useEffect(() => {
         const listenToConversationsArrChanges = () => {
@@ -47,7 +46,7 @@ function ChatsListItem({conversation}) {
 
     const getContainerClass = () => {
         const classes = [];
-        const isSelected = currentChatId === chatId;
+        const isSelected = currentChat && currentChat.id === chatId;
         if (isHovered) classes.push('hovered-chat-list');
         if (isSelected) classes.push('selected-chat-list');
         if (classes.length > 1) return 'selected-chat-list'
@@ -56,7 +55,7 @@ function ChatsListItem({conversation}) {
 
     const handleClick = (e) => {
         dispatch(setCurrentChatUsers(users));
-        dispatch(setCurrentChatId(chatId));
+        dispatch(setCurrentChat(conversation));
     }
 
     const handlePinChat = async (e) => {
@@ -77,9 +76,9 @@ function ChatsListItem({conversation}) {
     const handleDeleteChat = async (e) => {
         setAnchorEl(null);
         await firebaseService.deleteChat(chatId);
-        if (currentChatId === chatId) {
+        if (currentChat && currentChat.id === chatId) {
             dispatch(setCurrentChatUsers([]));
-            dispatch(setCurrentChatId(null));
+            dispatch(setCurrentChat(null));
         }
     }
 

@@ -5,7 +5,7 @@ import App from './App.jsx';
 import { configureStore } from '@reduxjs/toolkit';
 import { Provider } from 'react-redux';
 import authUserDetailsReducer from './redux/authUserDetails';
-import currentChatIdReducer from './redux/currentChatId';
+import currentChatReducer from './redux/currentChat';
 import currentChatUsersReducer from './redux/currentChatUsers';
 import currentReplyMessageReducer from './redux/currentReplyMessage';
 import starredMessagesIdsReducer from './redux/starredMessagesIds';
@@ -13,7 +13,7 @@ import starredMessagesIdsReducer from './redux/starredMessagesIds';
 const store = configureStore({
   reducer: {
     authUserDetails: authUserDetailsReducer,
-    currentChatId: currentChatIdReducer,
+    currentChat: currentChatReducer,
     currentChatUsers: currentChatUsersReducer,
     currentReplyMessage: currentReplyMessageReducer,
     starredMessagesIds: starredMessagesIdsReducer

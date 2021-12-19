@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import styled from 'styled-components';
 import { useSelector, useDispatch } from 'react-redux';
-import {setCurrentChatId} from '../redux/currentChatId';
+import {setCurrentChat} from '../redux/currentChat';
 import {setCurrentChatUsers} from '../redux/currentChatUsers';
 
 import { getLastSeenString } from '../services/commonService';
@@ -14,7 +14,7 @@ import {MoreVert as MoreVertIcon, Person as PersonIcon, CheckBox as CheckBoxIcon
 function CurrentChatInfo({isThreadMode, setIsContactInfoScreenVisible, unsetThreadMode, deleteChat}) {
 
     const authUser = useSelector(state => state.authUserDetails.value);
-    const currentChatId = useSelector(state => state.currentChatId.value);
+    const currentChat = useSelector(state => state.currentChat.value);
     const currentChatUsers = useSelector(state => state.currentChatUsers.value);
     const dispatch = useDispatch();
 
@@ -31,8 +31,8 @@ function CurrentChatInfo({isThreadMode, setIsContactInfoScreenVisible, unsetThre
     }
 
     const handleDeleteChat = async () => {
-        await deleteChat(currentChatId);
-        dispatch(setCurrentChatId(null));
+        await deleteChat(currentChat.id);
+        dispatch(setCurrentChat(null));
         dispatch(setCurrentChatUsers([]));
         setAnchorEl(null);
     }

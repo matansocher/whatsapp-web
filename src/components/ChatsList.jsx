@@ -26,7 +26,7 @@ function ChatsList() {
 
             conversationsArr = conversationsArr.map(conversation => {
                 return {
-                    chatId: conversation.id,
+                    id: conversation.id,
                     lastMessageTime: conversation.lastMessageTime,
                     participantsIds: uniq(conversation.participants.filter(participantUid => participantUid !== authUser.uid)),
                     pinnedFor: conversation.pinnedFor,
@@ -45,14 +45,14 @@ function ChatsList() {
             const userRecords = users.docs.map(doc => doc.data());
 
             conversationsArr = conversationsArr.map(conversation => {
-                const { chatId, lastMessageTime, participantsIds, pinnedFor, typing, isGroup, groupSubject } = conversation;
+                const { id, lastMessageTime, participantsIds, pinnedFor, typing, isGroup, groupSubject } = conversation;
                 const users = participantsIds.map(participantsId => {
                     return userRecords.find(userRecord => userRecord.uid === participantsId);
                 });
                 const isPinned = pinnedFor ? pinnedFor.includes(authUser.uid) : false;
                 const typingUsers = typing && typing.length ? typing.filter(userId => userId !== authUser.uid) : null;
                 return {
-                    chatId,
+                    id,
                     lastMessageTime,
                     users,
                     isPinned,
@@ -95,13 +95,13 @@ function ChatsList() {
 
     const renderSearchResults = () => {
         return searchResultsArr.map(conversation => {
-            return <ChatsListItem key={conversation.chatId} conversation={conversation} />;
+            return <ChatsListItem key={conversation.id} conversation={conversation} />;
         })
     }
 
     const renderChatsList = () => {
         return conversationsArr.map(conversation => {
-            return <ChatsListItem key={conversation.chatId} conversation={conversation} />;
+            return <ChatsListItem key={conversation.id} conversation={conversation} />;
         })
     }
 

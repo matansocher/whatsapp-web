@@ -1,6 +1,8 @@
 limit messages and scroll to load more
 enable multiple users in a chat - just code changes to support - dont except ContactInfo component
 create new chat with multiple
+better edit UX - update currentReplyMessage to currentReplyOrEditMessage
 
 
 currentChatId - should become currentChat so we can get the id and also all other details
+currentChatUsers - should be removed and instead use currentChat.users
